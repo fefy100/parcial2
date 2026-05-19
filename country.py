@@ -1,31 +1,37 @@
 import requests
 from requests.exceptions import HTTPError, ConnectionError, Timeout
-
 class Country:
 
-    def __init__(self, data:dict):
+    def __init__(self, data: dict):
         self.nombre = data["name"]["common"]
         self.capital = data["capital"]
         self.poblacion = data["population"]
         self.area = data["area"]
         self.region = data["region"]
 
-    
     def density(self):
         if self.area == 0:
             return 0
-    
-        return self.poblacion / self.area  
+        return self.poblacion / self.area
 
     def comparar(self, otros: list):
 
         paises = [self] + otros
 
-        print("Nombre\t\tPoblación\tÁrea\t\tDensidad")
+        # Encabezados
+        print(f"{'Nombre':<20}{'Población':>15}{'Área':>18}{'Densidad':>15}")
+        print("-" * 70)
 
+        # Tabla
         for pais in paises:
-            print(f"{pais.nombre}\t\t{pais.poblacion}\t\t{pais.area}\t\t{pais.density():.2f}")
+            print(
+                f"{pais.nombre:<20}"
+                f"{pais.poblacion:>15,}"
+                f"{pais.area:>18,.2f}"
+                f"{pais.density():>15.2f}"
+            )
 
+        # Ganadores
         mayor_poblacion = max(paises, key=lambda x: x.poblacion)
         mayor_area = max(paises, key=lambda x: x.area)
         mayor_densidad = max(paises, key=lambda x: x.density())
@@ -35,11 +41,7 @@ class Country:
         print("Mayor área:", mayor_area.nombre)
         print("Mayor densidad:", mayor_densidad.nombre)
 
-
-        
-
-    def __str__(self):
-        return f"Nombre {self.nombre}\nCapital {self.capital}\nPoblacion {self.poblacion}\nArea {self.area} "
+    
 
 # CLASE API (CONEXIÓN WEB)
 class CountryAPI:
