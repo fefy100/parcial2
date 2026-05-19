@@ -1,5 +1,9 @@
 import requests
 from requests.exceptions import HTTPError, ConnectionError, Timeout
+from concurrent.futures import ThreadPoolExecutor
+import time
+
+
 class Country:
 
     def __init__(self, data: dict):
@@ -41,43 +45,67 @@ class Country:
         print("Mayor área:", mayor_area.nombre)
         print("Mayor densidad:", mayor_densidad.nombre)
 
-    
 
 # CLASE API (CONEXIÓN WEB)
 class CountryAPI:
 
-    BASE = "https://restcountries.com/v3.1"  # URL base de la API
+    BASE = "https://restcountries.com/v3.1"
 
     def by_name(self, name):
-        # Busca un país por nombre
-        url = f"{self.BASE}/name/{name}"  # construye URL
+
+        url = f"{self.BASE}/name/{name}"
+
         try:
-            r = requests.get(url, timeout=5)  # petición a la API
-            r.raise_for_status()  # lanza error si la respuesta falla
-            data = r.json()[0]  # toma el primer resultado
-            return Country(data)  # convierte dict en objeto Country
+            r = requests.get(url, timeout=5)
+            r.raise_for_status()
+            data = r.json()[0]
+            return Country(data)
+
         except Timeout:
-            print("La API tardó demasiado")  # error de tiempo
+            print("La API tardó demasiado")
+
         except ConnectionError:
-            print("Sin conexión a internet")  # sin internet
+            print("Sin conexión a internet")
+
         except HTTPError as e:
-            print(f"Error {e.response.status_code}")  # error HTTP
-        return None  # si falla, no devuelve país
+            print(f"Error {e.response.status_code}")
+
+        return None
 
     def by_region(self, region):
-        # Busca todos los países de una región
-        url = f"{self.BASE}/region/{region}"  # URL por región
+
+        url = f"{self.BASE}/region/{region}"
 
         try:
-            r = requests.get(url, timeout=5)  # petición
-            r.raise_for_status()  # valida respuesta
-            data = r.json()  # lista de países
-            return [Country(p) for p in data]  # convierte todo a objetos
+            r = requests.get(url, timeout=5)
+            r.raise_for_status()
+            data = r.json()
+
+            return [Country(p) for p in data]
 
         except Timeout:
             print("Timeout")
+
         except ConnectionError:
             print("Sin internet")
+
         except HTTPError as e:
             print(f"Error {e.response.status_code}")
-        return []  # si falla devuelve lista vacía
+
+        return []
+
+    # CONCURRENCIA
+    def concurrentes(self, nombres):
+
+        inicio = time.time()
+
+        with ThreadPoolExecutor() as executor:
+            paises = list(executor.map(self.by_name, nombres))
+
+        fin = time.time()
+
+        paises = [p for p in paises if p]
+
+        print(f"\nTiempo de ejecución: {fin - inicio:.2f} segundos")
+
+        return paises
